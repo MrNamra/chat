@@ -7,6 +7,7 @@ use App\Models\chats;
 use App\Models\rooms;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ChatController extends Controller
 {
@@ -84,23 +85,35 @@ class ChatController extends Controller
     public function oneToOne($id){
         $resiver = User::find($id);
         $u_id = auth()->user()->id;
+        $chnl = null;
 
         $find_chnl = channel::where(function ($query) use ($u_id, $resiver) {
             $query->where('user_1', $u_id)
-            ->where('user_2.', $resiver);
+            ->where('user_2', $resiver->id);
             })
             ->orWhere(function ($query) use ($u_id, $resiver) {
-                $query->where('user_1', $resiver)
-                    ->where('user_2.', $u_id);
+                $query->where('user_1', $resiver->id)
+                    ->where('user_2', $u_id);
             })->with(['sender', 'receiver'])
             ->first();
+            if(!$find_chnl){
+                $chnl = Str::random(10);
+                $chn = new channel();
+                $chn->user_1 = auth()->user()->id;
+                $chn->user_2 = $id;
+                $chn->chnl = $chnl;
+
+                $chn->save();
+            }else{
+                $chnl = $find_chnl->chnl;
+            }
 
         $findchat = chats::where(function ($query) use ($u_id, $resiver) {
             $query->where('m_from', $u_id)
-            ->where('m_to', $resiver);
+            ->where('m_to', $resiver->id);
             })
             ->orWhere(function ($query) use ($u_id, $resiver) {
-                $query->where('m_from', $resiver)
+                $query->where('m_from', $resiver->id)
                     ->where('m_to', $u_id);
             })->with(['sender', 'receiver'])
             ->get();

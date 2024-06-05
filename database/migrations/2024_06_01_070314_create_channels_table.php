@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('channels', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_1')->references('id')->on('user');
-            $table->foreignId('user_2')->references('id')->on('user');
+            $table->foreignId('user_1')->references('id')->on('users');
+            $table->foreignId('user_2')->references('id')->on('users');
             $table->string('chnl')->unique();
             $table->timestamps();
         });
